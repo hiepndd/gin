@@ -386,7 +386,6 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 		unescape = engine.UnescapePathValues
 	}
 	rPath = cleanPath(rPath)
-
 	// Find root of the tree for the given HTTP method
 	t := engine.trees
 	for i, tl := 0, len(t); i < tl; i++ {
@@ -396,6 +395,11 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 		root := t[i].root
 		// Find route in tree
 		value := root.getValue(rPath, c.Params, unescape)
+
+		for i := 0 ; i < len(value.params) ; i++ {
+			value.params[i].Value = value.params[i].Key
+		}
+
 		if value.handlers != nil {
 			c.handlers = value.handlers
 			c.Params = value.params
@@ -404,6 +408,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			c.writermem.WriteHeaderNow()
 			return
 		}
+
 		if httpMethod != "CONNECT" && rPath != "/" {
 			if value.tsr && engine.RedirectTrailingSlash {
 				redirectTrailingSlash(c)
